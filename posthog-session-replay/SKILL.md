@@ -23,7 +23,69 @@ Create Session Replay playlists with custom filters via PostHog API.
 
 **Do NOT proceed without these values. Each user has their own API key.**
 
-## Quick Start
+---
+
+## Option 1: Quick Script (Recommended)
+
+Use the Python script for common filters. Faster and less error-prone.
+
+```bash
+python scripts/create_playlist.py --api-key API_KEY --project-id PROJECT_ID --name "Name" --filter-type TYPE [options]
+```
+
+### Filter Types Available:
+
+| Type | Description | Required Options |
+|------|-------------|------------------|
+| `person_property` | Filter by person property | `--property-key`, `--is-set` or `--property-value` |
+| `event` | Filter by event | `--event-name` |
+| `url` | Filter by URL | `--url` |
+| `rage_clicks` | Sessions with rage clicks | (none) |
+| `console_errors` | Sessions with console errors | (none) |
+| `mobile` | Mobile device sessions | (none) |
+
+### Examples:
+
+```bash
+# LinkedIn Ad visitors (li_fat_id is set)
+python scripts/create_playlist.py --api-key phx_xxx --project-id 12345 \
+    --name "LinkedIn Visitors" --filter-type person_property \
+    --property-key li_fat_id --is-set --host thelai.com
+
+# Rage clicks on specific domain
+python scripts/create_playlist.py --api-key phx_xxx --project-id 12345 \
+    --name "Rage Clicks" --filter-type rage_clicks --host thelai.com
+
+# Sessions on checkout page
+python scripts/create_playlist.py --api-key phx_xxx --project-id 12345 \
+    --name "Checkout Sessions" --filter-type url --url "/checkout"
+
+# Google Ads visitors
+python scripts/create_playlist.py --api-key phx_xxx --project-id 12345 \
+    --name "Google Ads" --filter-type person_property \
+    --property-key '$initial_utm_source' --property-value google
+
+# Mobile sessions
+python scripts/create_playlist.py --api-key phx_xxx --project-id 12345 \
+    --name "Mobile Users" --filter-type mobile --host thelai.com
+
+# Console errors
+python scripts/create_playlist.py --api-key phx_xxx --project-id 12345 \
+    --name "Error Sessions" --filter-type console_errors
+```
+
+### Additional Options:
+- `--host` - Filter by domain (auto-adds www. variant)
+- `--posthog-host` - PostHog instance (default: us.posthog.com)
+- `--date-from` - Date range (default: -30d)
+- `--description` - Playlist description
+- `--filter-test-accounts` - Exclude test accounts
+
+---
+
+## Option 2: Manual curl (For Custom Filters)
+
+Use curl when you need filters not covered by the script.
 
 Create a playlist with filters using curl:
 
