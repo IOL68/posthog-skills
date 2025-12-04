@@ -7,6 +7,10 @@ description: Create Session Replay playlists/filters in PostHog via API. Use whe
 
 Create Session Replay playlists with custom filters via PostHog API.
 
+## Requirements
+
+- **Python 3** (pre-installed on macOS)
+
 ## Before Using This Skill
 
 **ASK THE USER** for these required values before making any API calls:
