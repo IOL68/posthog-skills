@@ -2,23 +2,33 @@
 
 Generate a complete cross-domain user journey report from PostHog.
 
-## Input: $ARGUMENTS
-
-The input can be an **email** (e.g., `user@example.com`) or an **IP address** (e.g., `192.168.1.100` or `2001:db8::1`).
-
 ---
 
 ## Instructions
 
 Using the PostHog MCP tools (`mcp__posthog__query-run`), generate a complete user journey report. Follow these steps **exactly**:
 
-### Step 1: Detect input type
+### Step 1: Ask for email or IP
+
+**ALWAYS** start by using the `AskUserQuestion` tool to ask:
+
+```
+Question: "Enter the email or IP address to search:"
+Header: "User Journey"
+Options:
+  - Label: "Email", Description: "e.g. user@company.com"
+  - Label: "IP Address", Description: "e.g. 192.168.1.100"
+```
+
+Wait for the user's response before continuing.
+
+### Step 2: Detect input type
 - If input contains `@` → it's an **email**
 - Otherwise → it's an **IP address**
 
 ---
 
-### Step 2: Get user profile and identifiers
+### Step 3: Get user profile and identifiers
 
 **If input is EMAIL**, run this query:
 ```sql
@@ -73,9 +83,9 @@ LIMIT 1
 
 ---
 
-### Step 3: Get traffic source (first pageview)
+### Step 4: Get traffic source (first pageview)
 
-Use the **IP** from Step 2 to find the original traffic source:
+Use the **IP** from Step 3 to find the original traffic source:
 ```sql
 SELECT
     properties.$referrer as referrer,
@@ -84,7 +94,7 @@ SELECT
     properties.$utm_medium as utm_medium,
     properties.$utm_campaign as utm_campaign
 FROM events
-WHERE properties.$ip = '{IP_FROM_STEP_2}'
+WHERE properties.$ip = '{IP_FROM_STEP_3}'
 AND event = '$pageview'
 ORDER BY timestamp ASC
 LIMIT 1
@@ -97,7 +107,7 @@ LIMIT 1
 
 ---
 
-### Step 4: Get ALL events across ALL domains using IP
+### Step 5: Get ALL events across ALL domains using IP
 
 **CRITICAL**: Always use the **IP address** to search. This captures activity across all domains.
 
@@ -109,7 +119,7 @@ SELECT
     properties.$session_id as session_id,
     timestamp
 FROM events
-WHERE properties.$ip = '{IP_FROM_STEP_2}'
+WHERE properties.$ip = '{IP_FROM_STEP_3}'
 AND event IN ('$pageview', 'form_viewed', 'form_submitted_successfully', 'form_conversion', '$exception', 'quote_requested', 'file_uploaded')
 ORDER BY timestamp ASC
 LIMIT 300
@@ -117,7 +127,7 @@ LIMIT 300
 
 ---
 
-### Step 5: Get exception details (if any)
+### Step 6: Get exception details (if any)
 
 If there were `$exception` events, get the details:
 ```sql
@@ -127,7 +137,7 @@ SELECT
     properties.$exception_message as message,
     properties.$current_url as url
 FROM events
-WHERE properties.$ip = '{IP_FROM_STEP_2}'
+WHERE properties.$ip = '{IP_FROM_STEP_3}'
 AND event = '$exception'
 ORDER BY timestamp DESC
 LIMIT 5
@@ -135,7 +145,7 @@ LIMIT 5
 
 ---
 
-### Step 6: Generate the report
+### Step 7: Generate the report
 
 Use this exact format:
 
